@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>天枢</title>
+<link rel="icon" type="image/png" sizes="192x192" href="favicon.png?v=20261025-shanxi-full">
+<link rel="stylesheet" href="style.css?v=20261030-hd-oneline">
+<link rel="stylesheet" href="annual.css?v=20261028-position2">
+<link rel="stylesheet" href="freedom.css?v=20261031-fy-r8">
+<link rel="stylesheet" href="library.css?v=20261029-library3">
+<link rel="stylesheet" href="branch-scenes.css?v=20261030-primary5">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img class="logo" src="favicon.png?v=20261025-shanxi-full" width="36" height="36" alt=""><img class="brand-wordmark" src="brand-maoti.png" width="100" height="40" alt="天枢"></div>
+  <nav id="tabs" class="tabs" role="tablist"></nav>
+  <div class="meta"><span id="online"></span><span id="updated"></span></div>
+</header>
+
+<main>
+  <!-- 总览 -->
+  <section id="view-overview" class="view">
+    <div class="org">
+      <div class="node founder" id="founder"></div>
+      <div class="stem"></div>
+      <div class="node ceo" id="ceo"></div>
+      <div class="branch" id="branch"></div>
+      <div class="agents" id="agents"></div>
+    </div>
+    <div class="grid3">
+      <article class="panel"><h3>待你拍板 / 在办工单</h3><div id="ov-queue"></div></article>
+      <article class="panel"><h3>日志</h3><ol id="ov-log" class="log"></ol></article>
+      <article class="panel"><h3>AI 工作量 <small>近 14 天日志条数</small></h3><div id="ov-work"></div></article>
+    </div>
+    <article class="panel brief" id="brief-panel"><h3>天枢简报</h3><div id="brief"></div></article>
+  </section>
+
+  <!-- 单个 Agent 详情 -->
+  <section id="view-agent" class="view" hidden></section>
+
+  <!-- 变更链路：两台电脑 × 三方 AI 的开工/收工、文件改动、版本 -->
+  <section id="view-changes" class="view" hidden>
+    <article class="panel"><h3>项目版本 <small>各电脑的清单指纹；有“落后”说明那台电脑要先同步再开工</small></h3><div id="c-versions"></div></article>
+    <div class="grid2">
+      <article class="panel"><h3>开工 / 收工</h3><div id="c-tasks"></div></article>
+      <article class="panel"><h3>文件改动批次 <small>“未登记”= 发起人手动或没走开工流程</small></h3><div id="c-batches"></div></article>
+    </div>
+    <article class="panel"><h3>天枢版本 <small>本仓库最近提交</small></h3><div id="c-commits"></div>
+      <p class="hint">改业务项目前：<code>scripts\task_begin.ps1 -Agent Claude -Project thesis</code>；收工：<code>scripts\task_end.ps1 -Agent Claude -Project thesis -Summary "做了什么"</code></p></article>
+  </section>
+
+  <!-- 成果：各项目最新初稿，天枢（本机）可一键打开 -->
+  <section id="view-outputs" class="view" hidden>
+    <p class="hint" id="wb-hint"></p>
+    <div id="o-projects" class="grid2"></div>
+    <article class="panel"><h3>同步体检 <small>进度 / 记忆 / 成果是否已上云（换电脑、换 AI 能否接上）</small></h3><div id="o-audit"></div></article>
+  </section>
+
+  <!-- 轻体（原年度计划）：口令解密后才显示（数据为密文，D38）；交易移到扶摇「新模式」 -->
+  <section id="view-annual" class="view" hidden></section>
+  <!-- 扶摇 · 自由：收入明细各分表（只在天枢 NAS / 本机里显示数据） -->
+  <section id="view-freedom" class="view" hidden></section>
+
+  <!-- 指令与 AI 回复（D45）：存于 NAS -->
+  <section id="view-cmd" class="view" hidden></section>
+
+  <!-- 待办 -->
+  <section id="view-queue" class="view" hidden>
+    <article class="panel"><h3>需要你处理的问题 <small>每条附对应文件：天枢里点「打开」直接改，点「定位」在资源管理器里找到</small></h3><div id="q-todos"></div></article>
+    <article class="panel"><h3>待你拍板</h3><div id="q-decisions"></div>
+      <p class="hint">拍板命令：<code>python hub/decide.py &lt;编号&gt; "你的决定"</code>，驳回加 <code>--dismiss</code>。</p></article>
+    <article class="panel"><h3>在办工单（天枢已派给负责 AI）</h3><div id="q-tickets"></div></article>
+    <article class="panel"><h3>建议闭环 <small>给建议 → 拍板 → 派活 → 验收 → 回流</small></h3><div id="q-proposals"></div>
+      <p class="hint">验收命令（Claude）：<code>python hub/accept.py &lt;建议编号&gt; pass|fail "说明"</code></p></article>
+  </section>
+</main>
+
+<footer class="foot">P2 Agent 自修 · P1 天枢裁决 · P0 / 连续 3 天未决 → 发起人拍板</footer>
+
+<script src="data/dashboard.js"></script>
+<script src="library.js?v=20261029-library3"></script>
+<script src="branch-scenes.js?v=20261030-primary5"></script>
+<script src="app.js?v=20261030-brand"></script>
+<script src="flow.js?v=20261027-d53"></script>
+<script src="workbench.js?v=20261027-d53b"></script>
+<script src="data/annual.enc.js"></script>
+<script src="annual.js?v=20261030-qingti"></script>
+<script src="freedom.js?v=20261031-fy-r8"></script>
+<script src="cmd.js?v=20261028-files2"></script>
+</body>
+</html>
