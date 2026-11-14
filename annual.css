@@ -1,0 +1,354 @@
+/* ── 年度计划（annual.js）：沿用天枢变量；股票红盈绿亏，体重绿减红增 ── */
+#view-annual { max-width: none; margin: 0 auto; }  /* 与其他页面同宽（main 1400px），发起人 10-28 取消 D53 的 1840px 放宽 */
+.an-red { color: var(--err) !important; }
+.an-green { color: var(--ok) !important; }
+.an-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.an-head h2 { margin: 0; font-size: 20px; }
+.an-btn { font: inherit; font-size: 13px; padding: 7px 16px; border-radius: 8px; cursor: pointer; border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--text); }
+.an-btn:hover { background: color-mix(in srgb, var(--accent) 34%, transparent); }
+.an-btn.ghost { background: none; color: var(--muted); border-color: var(--line2); padding: 4px 12px; }
+.an-seg, .an-periods { display: flex; gap: 4px; margin-bottom: 10px; padding: 3px; background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; }
+.an-periods { background: none; border: 0; padding: 0; }
+.an-seg button, .an-periods button { flex: 1; font: inherit; border: 0; background: none; color: var(--muted); padding: 7px 0; border-radius: 8px; cursor: pointer;
+  transition: background .15s, color .15s, transform .1s; }
+.an-periods button { border: 1px solid var(--line); font-size: 13px; padding: 5px 0; }
+.an-seg button:active, .an-periods button:active { transform: scale(.97); }
+.an-seg button[aria-selected="true"] { background: var(--card); color: var(--text); box-shadow: inset 0 0 0 1px var(--line2); }
+.an-periods button[aria-selected="true"] { color: var(--ceo); border-color: color-mix(in srgb, var(--ceo) 55%, transparent); background: color-mix(in srgb, var(--ceo) 10%, transparent); }
+.an-body > .panel { animation: an-in .45s ease both; }
+.an-body > .panel:nth-child(2) { animation-delay: 60ms; } .an-body > .panel:nth-child(3) { animation-delay: 120ms; } .an-body > .panel:nth-child(4) { animation-delay: 180ms; }
+@keyframes an-in { from { transform: translateY(10px); filter: brightness(1.4); } }
+.an-card { border-color: color-mix(in srgb, var(--ceo) 35%, var(--line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ceo) 6%, transparent), 0 0 28px color-mix(in srgb, var(--ceo) 10%, transparent); }
+.an-stat-hd { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 12px; }
+.an-big { font-size: 30px; font-weight: 700; letter-spacing: -.5px; margin: 4px 0 10px; font-variant-numeric: tabular-nums; }
+.an-rate { font-size: 15px; font-weight: 600; margin-left: 10px; }
+.an-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 8px; }
+.an-kpis .kpi { padding: 10px 12px; }
+.an-kpis .kpi b { font-size: 18px; display: block; font-variant-numeric: tabular-nums; }
+.an-progress { height: 6px; border-radius: 3px; background: var(--bg2); overflow: hidden; margin: -4px 0 4px; }
+.an-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--ceo)); }
+.an-progress-t { display: block; margin-bottom: 10px; font-size: 11px; }
+/* 图表 */
+.an-chart { width: 100%; margin: 6px 0 2px; touch-action: pan-y; }
+.an-chart svg { display: block; width: 100%; height: auto; cursor: crosshair; }
+.an-axis text, .an-tip { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.an-tip { fill: var(--text); font-weight: 600; }
+.an-grid { stroke: var(--line); stroke-dasharray: 2 4; }
+.an-zero { stroke: var(--line2); }
+.an-line { fill: none; stroke: var(--ceo); stroke-width: 2; stroke-linejoin: round; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ceo) 45%, transparent)); }
+.an-avg { fill: none; stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 4 4; }
+.an-dot { fill: var(--ceo); } .an-dot.an-red { fill: var(--err); } .an-dot.an-green { fill: var(--ok); }
+.an-cursor { stroke: var(--accent); stroke-width: 1; opacity: .7; }
+/* 悬停提示框：跟随数据点（11-04） */
+.an-hl { fill: var(--ceo); stroke: var(--card); stroke-width: 2; pointer-events: none; }
+.an-float { pointer-events: none; }
+.an-float rect { fill: var(--card); stroke: color-mix(in srgb, var(--ceo) 55%, var(--line)); filter: drop-shadow(0 4px 10px rgb(0 0 0 / .35)); }
+.an-float text { fill: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.an-float .b { fill: var(--text); font-weight: 600; }
+/* 表格：一屏四列，不横向滚动 */
+.an-table { font-size: 13px; font-variant-numeric: tabular-nums; }
+.an-th, .an-tr { display: grid; grid-template-columns: 1fr 1.25fr 1.25fr .9fr; gap: 6px; align-items: start; padding: 7px 2px; border-bottom: 1px solid var(--line); }
+.an-th { color: var(--muted); font-size: 12px; }
+.an-th span:not(:first-child), .an-tr span:not(:first-child) { text-align: right; }
+.an-tr i { display: block; font-style: normal; font-size: 11px; opacity: .85; }
+.an-tr span:first-child i { color: var(--muted); }
+.an-weight .an-th, .an-weight .an-tr { grid-template-columns: 1fr .8fr 1fr 1fr; }
+/* 交易逐日表加仓位建议与判定（10-28）：盈亏两列左移，右侧两列给建议和 √× */
+.an-pos .an-th, .an-pos .an-tr { grid-template-columns: .7fr 1.15fr 1.15fr .8fr .8fr .45fr; }
+.an-pos .an-th span:last-child, .an-pos .an-tr > span:last-child { text-align: center; }
+.an-pos .an-tr i { color: var(--muted); }
+.an-pos .an-tr .an-red i, .an-pos .an-tr .an-green i { color: inherit; }
+/* 仓位建议按市场阶段着色，反弹用淡黄。 */
+.an-pos .an-tr .st { font-weight: 600; }
+.an-pos .an-tr .st.pos-up i { color: #ff7b72; }
+.an-pos .an-tr .st.pos-down i { color: #3fbf7f; }
+.an-pos .an-tr .st.pos-rebound i { color: #ffe3ac; }
+.an-pos .an-tr .st.pos-range i, .an-pos .an-tr .st.pos-bottom i { color: #94a3b8; }
+.an-pos .an-tr .st.pos-reduce i { color: #f0a35e; }
+.an-pos .an-th > span:first-child, .an-pos .an-tr > span:first-child { text-align: center; }
+.an-pos-pending { color: var(--muted); font-size: 11px; }
+.an-meal .an-th, .an-meal .an-tr { grid-template-columns: .7fr 2fr 1fr .8fr; }
+.an-meal .an-desc { text-align: left !important; overflow-wrap: anywhere; }
+.an-total { font-weight: 600; border-bottom: 0; }
+.an-counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.an-counts div { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.an-counts small { display: block; } .an-counts b { font-size: 20px; }
+.an-market { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.an-market:last-child { border-bottom: 0; }
+.an-market small { display: block; }
+.an-mk-right { text-align: right; }
+.an-mk-right small { white-space: pre-line; margin-top: 2px; }
+/* 解锁 */
+.an-lock { max-width: 420px; margin: 40px auto; text-align: center; padding: 26px 22px; }
+.an-lock-icon { font-size: 28px; color: var(--ceo); text-shadow: 0 0 18px color-mix(in srgb, var(--ceo) 60%, transparent); }
+.an-lock form { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.an-lock input[type="password"] { font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line2); background: var(--bg2); color: var(--text); }
+.an-remember { font-size: 12px; color: var(--muted); display: flex; gap: 6px; justify-content: center; align-items: center; }
+.an-msg { min-height: 18px; color: var(--warn); font-size: 12px; margin: 8px 0 0; }
+/* 市场三项逐日表 */
+.an-sub { margin: 16px 0 6px; font-size: 14px; }
+.an-mkt { margin-top: 10px; }
+.an-mkt .an-th, .an-mkt .an-tr { grid-template-columns: 96px repeat(3, minmax(0, 1fr)); gap: 0; padding: 0; align-items: stretch; }
+.an-mkt .an-th > span, .an-mkt .an-tr > span { min-width: 0; display: flex; align-items: center; justify-content: center; padding: 7px 10px; }
+.an-mkt .an-th > span:first-child, .an-mkt .an-tr > span:first-child { position: relative; justify-content: center; white-space: nowrap; text-align: center; }
+.an-mkt .an-tr > span:first-child small { position: absolute; right: 5px; }
+.an-mkt .an-th > span + span, .an-mkt .an-tr > span + span { border-left: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.an-mkt .an-th { min-height: 36px; background: color-mix(in srgb, var(--bg2) 60%, transparent); font-weight: 500; }
+.an-mkt .an-th > span { text-align: center; }
+.an-mkt .an-tr { min-height: 36px; border-bottom-color: color-mix(in srgb, var(--line) 70%, transparent); }
+.an-mkt .an-tr:not(.an-total):nth-child(odd) { background: color-mix(in srgb, var(--muted) 3%, transparent); }
+.an-mkt .an-tr:not(.an-total):hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.an-mkt .an-total { min-height: 42px; background: color-mix(in srgb, var(--bg2) 60%, transparent); border-top: 1px solid var(--line2); }
+.an-mkt .an-total > span:not(:first-child) { gap: 5px; flex-wrap: wrap; }
+/* 固定三个槽位，不随空标签缩进；表头、内容与合计共用同一列中心。 */
+.an-mkt .mk-cell { display: grid; grid-template-columns: 24px 60px 60px; align-items: center; justify-content: center; gap: 6px; }
+.an-mkt .mk-cell > .mk { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; padding: 0; line-height: 1; }
+.an-mkt .mk-cell .mtag { display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 22px; text-align: center; font-size: 11px; line-height: 1; padding: 0 4px; border-radius: 4px; white-space: nowrap; }
+.an-mkt .mtag.is-up { color: var(--err); background: color-mix(in srgb, var(--err) 14%, transparent); }
+.an-mkt .mtag.is-down, .an-mkt .mtag.is-low { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.an-mkt .mtag:empty { padding: 0; background: none; }
+.an-mkt .an-tr small { color: var(--muted); font-size: 10px; }
+@media (min-width: 641px) and (max-width: 900px) {
+  .an-mkt .an-th > span, .an-mkt .an-tr > span { padding-inline: 6px; }
+  .an-mkt .mk-cell { grid-template-columns: 20px 48px 48px; gap: 4px; }
+  .an-mkt .mk-cell > .mk { width: 20px; }
+  .an-mkt .mk-cell .mtag { width: 48px; padding-inline: 2px; }
+}
+/* 交易原表口径：× 绿、√ 红；双符号只略加深底色，保留轻微层次。 */
+.mk { display: inline-block; font-size: 12px; font-weight: 600; line-height: 1.5; padding: 0 6px; border-radius: 5px; }
+.mk-x1 { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.mk-x2 { color: var(--ok); background: color-mix(in srgb, var(--ok) 20%, transparent); }
+.mk-v1 { color: var(--err); background: color-mix(in srgb, var(--err) 12%, transparent); }
+.mk-v2 { color: var(--err); background: color-mix(in srgb, var(--err) 20%, transparent); }
+.an-mk-right .mk { margin-top: 2px; }
+/* 市场三项累计（11-03 发起人：取消当日三项、直接放累计，逐日表保留，表下加累计走势图） */
+.an-mkt-sum .an-market { padding: 6px 0; }
+/* 11-04 发起人：右侧 √/× 计数与「当前」「连续」三行要对齐 —— 改成固定列宽的网格，统一四个标签的高度与字号 */
+.an-mkt-sum .an-mk-right { display: grid; grid-template-columns: 46px 46px 58px 82px; align-items: center; gap: 6px; }
+.an-mkt-sum .an-mk-right > .mk,
+.an-mkt-sum .an-mk-right > .an-mk-cell { display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+  box-sizing: border-box; width: 100%; height: 20px; padding: 0 4px; margin: 0; border-radius: 5px;
+  font-size: 12px; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.an-mkt-sum .an-mk-right > .mk { font-weight: 600; }
+.an-mkt-sum .an-mk-right > .an-mk-cell { font-weight: 400; }
+.an-mkt-sum .an-mk-right .mk { margin-top: 0; }
+.an-mkt-sum .an-mk-cell small { font-size: 12px; font-weight: 500; }
+.an-mkt-sum .an-mk-cell b { font-size: 12px; }
+.an-mkt-sum .an-market { align-items: center; }
+/* 当前 / 连续两格（11-04 发起人：计数挪到右侧紧挨两格；两格填色 + 动效）。√ 红、× 绿，与原表口径一致 */
+/* 11-04 发起人：框偏大 → 收到与 √/× 小徽标同高（约 20px），字号收一档 */
+.an-mk-cell { --t: var(--muted); position: relative; overflow: hidden; display: inline-flex; align-items: baseline; gap: 3px;
+  padding: 0 7px; border-radius: 5px; border: 1px solid color-mix(in srgb, var(--t) 32%, transparent);
+  background: color-mix(in srgb, var(--t) 8%, transparent); white-space: nowrap; font-variant-numeric: tabular-nums; line-height: 1.5; }
+.an-mk-cell.is-v { --t: var(--err); } .an-mk-cell.is-x { --t: var(--ok); }
+.an-mk-cell small { display: inline; font-size: 10.5px; color: color-mix(in srgb, var(--t) 50%, var(--muted)); position: relative; }
+.an-mk-cell b { color: var(--t); font-size: 12.5px; font-weight: 700; position: relative; }
+.an-mkt-sum .an-mk-now { margin-left: 6px; background: color-mix(in srgb, var(--t) 18%, transparent); animation: an-mk-breathe 2.6s ease-in-out infinite; }
+.an-mk-streak { min-width: 0; justify-content: center; }
+/* 连续格：底色按「连续天数 ÷ 区间交易日」填满，入场从 0 推到位，之后一道光扫过 */
+.an-mk-streak::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--fill, 0%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--t) 22%, transparent), color-mix(in srgb, var(--t) 38%, transparent));
+  animation: an-mk-fill .9s cubic-bezier(.2, .8, .2, 1) both; }
+.an-mk-streak::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, #fff 16%, transparent) 50%, transparent 70%);
+  animation: an-mk-sweep 3.2s ease-in-out 1s infinite; }
+@keyframes an-mk-fill { from { width: 0; } }
+@keyframes an-mk-sweep { 0% { transform: translateX(-100%); } 45%, 100% { transform: translateX(100%); } }
+@keyframes an-mk-breathe { 50% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--t) 12%, transparent), 0 0 8px color-mix(in srgb, var(--t) 24%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .an-mk-cell, .an-mk-cell::before, .an-mk-cell::after { animation: none !important; } .an-mk-streak::after { display: none; } }
+@media (max-width: 640px) {
+  .an-mkt-sum .an-market { flex-wrap: wrap; }
+  /* 窄屏同样保持四列对齐：整行占满，四列等分 */
+  .an-mkt-sum .an-mk-right { grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; }
+}
+/* 11-04 发起人：手机端「扶摇 · 股票 · 新模式」显示不全。内嵌交易模块按视口宽收缩，
+   逐日记录的三个指数、逐日统计的建议/判定都要同屏，不再靠外层裁切。只作用于扶摇内嵌块，不影响轻体页。 */
+@media (max-width: 640px) {
+  .fy-annual-trading { gap: 10px; }
+  .fy-annual-trading .panel { padding: 12px 10px; }
+  .fy-annual-trading .an-periods { gap: 3px; }
+  .fy-annual-trading .an-periods button { font-size: 12px; padding: 5px 2px; }
+  .fy-annual-trading .an-stat-hd { font-size: 11px; gap: 6px; }
+  .fy-annual-trading .an-big { font-size: 24px; margin: 2px 0 8px; }
+  .fy-annual-trading .an-rate { font-size: 13px; margin-left: 6px; }
+  .fy-annual-trading .an-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .fy-annual-trading .an-kpis .kpi { padding: 8px 8px; }
+  .fy-annual-trading .an-kpis .kpi b { font-size: 15px; }
+  .fy-annual-trading .an-kpis .kpi small { font-size: 11px; line-height: 1.45; }
+  /* 手机：符号跨两行，新高低在上、均线在下；空槽保留，避免各行随机换行。 */
+  .an-mkt .an-th, .an-mkt .an-tr { grid-template-columns: 44px repeat(3, minmax(0, 1fr)); }
+  .an-mkt .an-th { font-size: 11px; min-height: 40px; }
+  .an-mkt .an-th > span:not(:first-child) { text-wrap: balance; line-height: 1.4; }
+  .an-mkt .an-th > span, .an-mkt .an-tr > span { padding: 5px 2px; }
+  .an-mkt .an-tr { min-height: 48px; }
+  .an-mkt .an-tr > span:first-child { font-size: 11px; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
+  .an-mkt .an-tr > span:first-child small { position: static; }
+  .an-mkt .mk-cell { grid-template-columns: 15px 44px; grid-template-rows: 17px 17px; gap: 2px 3px; }
+  .an-mkt .mk-cell > .mk { grid-column: 1; grid-row: 1 / 3; width: 15px; height: 18px; font-size: 11px; }
+  .an-mkt .mk-cell .mtag { grid-column: 2; width: 44px; height: 17px; padding: 0 2px; font-size: 10px; }
+  .an-mkt .mk-cell .mtag:nth-child(2) { grid-row: 1; }
+  .an-mkt .mk-cell .mtag:nth-child(3) { grid-row: 2; }
+  .an-mkt .mk { font-size: 11px; padding: 0 3px; white-space: nowrap; }
+  .an-mkt .an-total { min-height: 40px; }
+  .an-mkt .an-total > span:not(:first-child) { gap: 3px; }
+  /* 逐日统计：六列字号收一档，仓位建议与判定同屏 */
+  .fy-annual-trading .an-pos .an-th,
+  .fy-annual-trading .an-pos .an-tr { grid-template-columns: 40px 1.05fr 1.05fr .75fr .8fr 24px; gap: 3px; font-size: 11px; }
+  .fy-annual-trading .an-pos .an-th { font-size: 10.5px; }
+  .fy-annual-trading .an-pos .an-tr i { font-size: 9.5px; }
+}
+/* 均线位置走势（11-04 发起人：纵轴改为 创新低 / 5日线下 / 5日线上 / 10日线上 分档）：读数行代替图例，末端标当前档位 */
+:root { --mkt2: #2dd4bf; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --mkt2: #0d9488; } }
+.an-mkt-trend { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.an-mkt-trend-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+.an-mkt-trend-hd .an-sub { margin: 0; }
+.an-mkt-read { display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.an-mkt-read span { display: inline-flex; align-items: baseline; gap: 5px; }
+.an-mkt-read i { width: 10px; height: 3px; border-radius: 2px; background: var(--c); align-self: center; }
+.an-mkt-read b { color: var(--c); font-size: 13px; min-width: 4.2em; }
+.an-mkt-read em { font-style: normal; color: var(--text); opacity: .75; }
+/* 档位底带：弱档淡绿、强档淡红（A 股红强绿弱），中间档不着色 */
+.an-lv-band { fill: transparent; }
+.an-lv-band.lv-0 { fill: color-mix(in srgb, var(--ok) 9%, transparent); }
+.an-lv-band.lv-1 { fill: color-mix(in srgb, var(--ok) 4%, transparent); }
+.an-lv-band.lv-3 { fill: color-mix(in srgb, var(--err) 5%, transparent); }
+.an-lv-band.lv-4 { fill: color-mix(in srgb, var(--err) 9%, transparent); }
+.an-axis .an-lv-lab { font-size: 11px; }
+.an-axis .an-lv-lab.lv-0 { fill: color-mix(in srgb, var(--ok) 75%, var(--muted)); }
+.an-axis .an-lv-lab.lv-1 { fill: color-mix(in srgb, var(--ok) 40%, var(--muted)); }
+.an-axis .an-lv-lab.lv-3 { fill: color-mix(in srgb, var(--err) 45%, var(--muted)); }
+.an-axis .an-lv-lab.lv-4 { fill: color-mix(in srgb, var(--err) 75%, var(--muted)); }
+.an-ma-line { stroke: var(--line2); stroke-dasharray: 5 4; }
+.an-ma-line-strong { stroke: var(--err); stroke-width: 2; stroke-dasharray: 9 6; stroke-linecap: round; opacity: .9; }
+.an-axis .an-ma-tag { font-size: 10px; opacity: .8; }
+.an-line.an-mkt-line { filter: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.an-line.mkt-2 { stroke: var(--mkt2); }
+.an-line.mkt-3 { stroke: var(--warn); }
+.an-mkt-end { stroke: var(--card); stroke-width: 1.5; }
+.an-mkt-end.mkt-1, .an-mkt-hov.mkt-1 { fill: var(--ceo); } .an-mkt-end.mkt-2, .an-mkt-hov.mkt-2 { fill: var(--mkt2); } .an-mkt-end.mkt-3, .an-mkt-hov.mkt-3 { fill: var(--warn); }
+.an-mkt-hov { stroke: var(--card); stroke-width: 2; pointer-events: none; }
+.an-mkt-lab { font-size: 11px; font-variant-numeric: tabular-nums; }
+.an-mkt-lab .v { font-weight: 700; }
+.an-mkt-lab.mkt-1 { fill: var(--ceo); } .an-mkt-lab.mkt-2 { fill: var(--mkt2); } .an-mkt-lab.mkt-3 { fill: var(--warn); }
+/* 记一餐（D46 精简）：图片按钮 + 一行文字 + 发送 */
+.an-quick { display: flex; gap: 8px; align-items: stretch; }
+.an-quick textarea { flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line2);
+  background: var(--bg2); color: var(--text); resize: vertical; min-height: 38px; box-sizing: border-box; }
+.an-cam { display: inline-flex; align-items: center; white-space: nowrap; }
+.an-cam.off { opacity: .45; pointer-events: none; }
+.an-qimg { display: block; max-height: 110px; max-width: 100%; margin-top: 8px; border-radius: 8px; border: 1px solid var(--line); }
+.an-msg.ok { color: var(--ok); }
+@media (max-width: 640px) { .an-quick { flex-wrap: wrap; } .an-quick textarea { flex-basis: 100%; order: -1; } .an-quick .an-btn { flex: 1; text-align: center; justify-content: center; } }
+/* 电脑版饮食（D43）：记录表单、建议、日计划完成情况 */
+.an-body.an-still > .panel { animation: none; }
+.an-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px; }
+.an-chips span { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line2); color: var(--muted); }
+.an-chips span.on { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 50%, transparent); background: color-mix(in srgb, var(--ok) 10%, transparent); }
+.an-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 6px 0 8px; }
+.an-form label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.an-form .an-wide, .an-form .an-photo { grid-column: 1 / -1; }
+.an-form input, .an-form textarea { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line2);
+  background: var(--bg2); color: var(--text); min-width: 0; width: 100%; box-sizing: border-box; }
+.an-form textarea { resize: vertical; }
+.an-photo { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.an-photo img { max-height: 120px; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); }
+.an-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.an-btn:disabled { opacity: .45; cursor: not-allowed; }
+.an-advice { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 6px 0; }
+.an-advice p { margin: 6px 0; font-size: 13px; line-height: 1.6; }
+.an-advice ul { margin: 6px 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+/* 每日营养素（11-12 发起人定：替换下一餐建议）—— 能量与三大宏量进度条 + 矿物质/维生素网格 */
+.an-nutri .an-nu-hd { display: flex; flex-wrap: wrap; gap: 2px 14px; align-items: baseline; justify-content: space-between; margin: 2px 0 10px; }
+.an-nutri .an-nu-hd span { font-size: 14px; font-variant-numeric: tabular-nums; }
+.an-nutri .an-nu-hd small { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.an-nu-main { display: grid; gap: 8px; }
+.an-nu-row { display: grid; grid-template-columns: minmax(128px, 172px) minmax(0, 1fr) minmax(96px, auto); gap: 10px; align-items: center; }
+.an-nu-lab { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.an-nu-lab b { font-size: 13px; font-weight: 600; }
+.an-nu-lab small { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.an-nu-track { height: 8px; border-radius: 999px; background: var(--bg2); border: 1px solid var(--line); overflow: hidden; }
+.an-nu-track i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ceo), color-mix(in srgb, var(--ceo) 55%, transparent)); transition: width .45s ease; }
+.an-nu-track i.over { background: var(--warn); }
+.an-nu-num { text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.an-nu-num em { font-style: normal; color: var(--muted); font-size: 12px; }
+.an-nu-num.an-nu-todo { color: var(--muted); }
+.an-nu-num.an-nu-over-num { color: var(--warn); }
+.an-nu-sub { margin-top: 12px; }
+.an-nu-sub h4 { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; margin: 0 0 6px; }
+.an-nu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); gap: 6px; }
+.an-nu-cell { background: var(--bg2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.an-nu-cell > span { font-size: 12px; color: var(--muted); display: flex; gap: 5px; align-items: baseline; flex-wrap: wrap; }
+.an-nu-cell > span small { font-size: 10px; padding: 0 4px; border-radius: 4px; border: 1px solid var(--line2); color: var(--muted); }
+.an-nu-cell b { font-size: 13px; font-variant-numeric: tabular-nums; }
+.an-nu-cell b em { font-style: normal; color: var(--muted); font-size: 11px; }
+.an-nu-cell > small { font-size: 10.5px; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
+.an-nu-cell.an-nu-known { border-color: color-mix(in srgb, var(--ok) 38%, var(--line)); }
+.an-nu-cell.an-nu-known b { color: var(--ok); }
+.an-nu-cell.an-nu-known-dim { border-color: color-mix(in srgb, var(--ceo) 32%, var(--line)); }
+.an-nu-cell.an-nu-over { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+.an-nu-cell.an-nu-over b { color: var(--warn); }
+.an-nu-cell.an-nu-ref { opacity: .85; }
+@media (max-width: 640px) {
+  .an-nu-row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; }
+  .an-nu-track { grid-column: 1 / -1; grid-row: 2; }
+  .an-nu-grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+}
+.an-meal5 .an-th, .an-meal5 .an-tr { grid-template-columns: .6fr 2fr .9fr .7fr 1fr; }
+.an-meal5 .an-desc { text-align: left !important; overflow-wrap: anywhere; }
+.an-ops { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.an-ops button { font: inherit; font-size: 12px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--line2); background: none; color: var(--muted); cursor: pointer; }
+.an-ops button:hover { color: var(--text); border-color: var(--accent); }
+.an-days .an-th, .an-days .an-tr { grid-template-columns: .8fr 1.1fr 1.2fr 1.2fr .8fr; }
+.an-marks b { display: inline-block; width: 18px; text-align: center; font-weight: 600; font-size: 11px; margin-left: 2px; border-radius: 4px; color: var(--muted); background: var(--bg2); }
+.an-marks b.on { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+@media (max-width: 640px) {
+  .an-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .an-meal5 .an-th, .an-meal5 .an-tr { grid-template-columns: .6fr 1.6fr .9fr .7fr; }
+  .an-meal5 .an-th span:last-child { display: none; }
+  .an-meal5 .an-ops { grid-column: 1 / -1; justify-content: flex-start; }
+  .an-days .an-th, .an-days .an-tr { grid-template-columns: .7fr 1fr 1.1fr 1.1fr .8fr; }
+}
+@media (max-width: 640px) {
+  .an-big { font-size: 26px; }
+  .an-kpis { gap: 8px; }
+  .an-kpis .kpi { padding: 8px; }
+  .an-kpis .kpi b { font-size: 15px; }
+  .an-kpis .kpi small { font-size: 11px; }
+  .an-table { font-size: 12px; }
+  .an-th, .an-tr { gap: 4px; padding: 6px 0; }
+  .an-th { font-size: 11px; }
+  /* 手机：逐日表六列收窄，数字列可缩，表头可换行，不横向溢出（10-28） */
+  .an-pos .an-th, .an-pos .an-tr { grid-template-columns: 2.5em minmax(0, 1fr) minmax(0, 1.1fr) 3.9em 2.9em 1.7em; gap: 3px; }
+  .an-pos .an-tr { font-size: 11.5px; }
+  .an-pos .an-tr i { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .an-body > .panel { animation: none; }
+  .an-seg button, .an-periods button { transition: none; }
+}
+/* 11-04 发起人：日计划加「平均摄入 / 天」，四项计数一行 */
+.an-counts.an-counts4 { grid-template-columns: repeat(4, 1fr); }
+/* 11-05 发起人：逐日表像交易明细一样在行内展开，不用弹层 */
+.an-dayrow { cursor: pointer; }
+.an-dayrow:hover, .an-dayrow:focus-visible { background: color-mix(in srgb, var(--accent) 8%, transparent); outline: none; }
+.an-dayrow:focus-visible { box-shadow: inset 0 0 0 1px var(--accent); }
+.an-dayrow.open { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.an-daydate { display: inline-flex; align-items: center; gap: 4px; }
+.an-caret { font-weight: 400; color: var(--muted); }
+.an-daypanel { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px 6px; margin: 0 0 8px; }
+.an-daypanel-hd { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; font-size: 12px; color: var(--muted); }
+.an-daypanel-hd b { color: var(--text); font-size: 13px; }
+.an-daypanel-close { margin-left: auto; padding: 2px 10px; font-size: 12px; }
+.an-daypanel .an-table { font-size: 12.5px; }
+.an-daypanel .an-th, .an-daypanel .an-tr { padding: 5px 2px; }
+/* 展开区在 .an-days 里面，必须覆盖逐日表自己的 5 列，否则 4 列明细会被挤成窄条 */
+.an-days .an-daypanel .an-meal .an-th,
+.an-days .an-daypanel .an-meal .an-tr { grid-template-columns: .6fr 2.2fr .8fr .8fr; }
+.an-daypanel .hint { margin: 4px 0 0; }
+@media (max-width: 640px) {
+  .an-counts.an-counts4 { grid-template-columns: repeat(2, 1fr); }
+  .an-daypanel-close { margin-left: 0; }
+}
